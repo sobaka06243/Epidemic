@@ -132,7 +132,7 @@ void MainWindow::init(int count, int inf, int proc)
     if(!lineRight) lineRight = scene->addLine(r.center().x() + 250, r.center().y() - 250, r.center().x() + 250, r.center().y() + 250);
     if(!lineTop) lineTop = scene->addLine(r.center().x() - 250, r.center().y() - 250, r.center().x() + 250, r.center().y() - 250);
     if(!lineBottom) lineBottom = scene->addLine(r.center().x() - 250, r.center().y() + 250, r.center().x() + 250, r.center().y() + 250);
-    timer->start(1);
+    timer->start(15);
 }
 
 void MainWindow::Clear()
@@ -140,6 +140,8 @@ void MainWindow::Clear()
     for(int i=0;i<N;i++){
         delete ball[i];
     }
+    ui->lineEdit_Recovered->setText("0");
+    ui->lineEdit_Dead->setText("0");
 }
 
 
