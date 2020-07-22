@@ -10,7 +10,6 @@ class InfectedBall :public QWidget, public BallItem
     Q_OBJECT
 public:
     InfectedBall(QWidget *parent = 0);
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     BallItem* Collision(BallItem *a);
 public slots:
     void slot_timerOut();

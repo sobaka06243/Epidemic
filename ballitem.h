@@ -8,7 +8,6 @@
 
  class BallItem : public QGraphicsEllipseItem
 {
-//    Q_OBJECT
 
     Q_INTERFACES(QGraphicsItem)
 
@@ -16,21 +15,34 @@ public:
     BallItem();
 
     QRectF boundingRect() const; //возвращение области
-  //  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget); //отрисовка шара
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget); //отрисовка шара
     QPainterPath shape() const; //возвращаем точную форму элемента
 
     QColor GetColor();
-    virtual BallItem* Collision(BallItem *a) = 0;
+    QTimer* GetTimer();
+    int GetIsChange();
+    QPointF GetBallStartPos();
+    qreal GetCurAngle();
+    qreal GetLeng();
+
+    void SetBallStartPos(QPointF ballStartPos);
+    void SetCurAngle(qreal curAngle);
+    void SetLeng(qreal leng);
+
+    virtual BallItem* Collision(BallItem *a) = 0; //взаимодействие с другим шаром
+
+    protected:
     QColor color;
     QTimer* timer;
     int isChange;
- protected:
-
+    QPointF ballStartPos;
+    qreal curAngle;
+    qreal leng;
 
 signals:
     
 public slots:
-   // void slot
+
 };
 
 #endif // BALLITEM_H

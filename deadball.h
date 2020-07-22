@@ -7,7 +7,6 @@ class DeadBall: public BallItem
 {
 public:
     DeadBall();
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     BallItem* Collision(BallItem *a);
 };
 

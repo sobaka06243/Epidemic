@@ -7,7 +7,6 @@ class RecoveredBall: public BallItem
 {
 public:
     RecoveredBall();
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     BallItem* Collision(BallItem *a);
 };
 
