@@ -1,9 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include "qmath.h"
-#include <QTime>
-#include <QLabel>
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -11,12 +9,11 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    scene = 0;
     lineLeft = 0;
     lineRight = 0;
     lineTop = 0;
     lineBottom = 0;
-    N=0;
+    ballCount = 0;
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(slot_timerOut()));
     scene = new QGraphicsScene();
@@ -24,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent) :
     scene->setSceneRect(-100,-100,300,300);
     ui->graphicsView->setScene(scene);
     connect(ui->pushButton,SIGNAL(clicked()),this,SLOT(buttonClicked()));
+
 }
 
 MainWindow::~MainWindow()
@@ -42,28 +40,28 @@ QPointF MainWindow::getNextPoint(QPointF startPoint, qreal angle, qreal leng)
 
 void MainWindow::InfectedToRecovered()
 {
-    for(int i=0;i<N;i++){
+    for(int i=0; i < ballCount; i++){
         int textInf = ui->lineEdit_Infected->text().toInt();
         int textRecovered = ui->lineEdit_Recovered->text().toInt();
         int textDead = ui->lineEdit_Dead->text().toInt();
         //если таймер шара истек
-        if(ball[i]->GetIsChange()){
-            int rand = qrand() %100;
-            ball[i]->GetTimer()->stop();
+        if(ballVector[i]->GetIsChange()){
+            int random = rand() %100;
+            ballVector[i]->GetTimer()->stop();
             //если шар выздоровил
-            if(rand>procent){
+            if(random > procent){
                 BallItem* rec = new RecoveredBall();
                 textInf--;
                 textRecovered++;
                 ui->lineEdit_Recovered->setText(QString::number(textRecovered));
                 ui->lineEdit_Infected->setText(QString::number(textInf));
-                rec->setPos(ball[i]->pos());
-                rec->SetCurAngle(ball[i]->GetCurAngle());
-                rec->SetBallStartPos(ball[i]->GetBallStartPos());
-                rec->SetLeng(ball[i]->GetLeng());
-                scene->removeItem(ball[i]);
-                delete ball[i];
-                ball[i] = rec;
+                rec->setPos(ballVector[i]->pos());
+                rec->SetCurAngle(ballVector[i]->GetCurAngle());
+                rec->SetBallStartPos(ballVector[i]->GetBallStartPos());
+                rec->SetLeng(ballVector[i]->GetLeng());
+                scene->removeItem(ballVector[i]);
+                delete ballVector[i];
+                ballVector[i] = rec;
                 scene->addItem(rec);
             }
             //если шар умер
@@ -73,10 +71,10 @@ void MainWindow::InfectedToRecovered()
                 ui->lineEdit_Dead->setText(QString::number(textDead));
                 ui->lineEdit_Infected->setText(QString::number(textInf));
                  BallItem* dead = new DeadBall();
-                 dead->setPos(ball[i]->pos());
-                 dead->setPos(ball[i]->pos());
-                 scene->removeItem(ball[i]);
-                 ball[i] = dead;
+                 dead->setPos(ballVector[i]->pos());
+                 dead->setPos(ballVector[i]->pos());
+                 scene->removeItem(ballVector[i]);
+                 ballVector[i] = dead;
                  scene->addItem(dead);
             }
         }
@@ -84,61 +82,61 @@ void MainWindow::InfectedToRecovered()
 }
 
 
-
-void MainWindow::init(int count, int inf, int proc)
+void MainWindow::CreateBalls()
 {
-    Clear();
-    N=count;
-    infected = inf;
-    procent = proc;
-    int textHealth = ui->lineEdit->text().toInt() - ui->lineEdit_2->text().toInt();
-    ui->lineEdit_Healthy->setText(QString::number(textHealth));
-    ui->lineEdit_Infected->setText(ui->lineEdit_2->text());
-    qsrand(QTime(0,0,0).secsTo(QTime::currentTime()));
-    for(int i=0;i<N;i++){
+    srand(QTime(0,0,0).secsTo(QTime::currentTime()));
+    for(int i = 0;i < ballCount; i++){
         int isFree;
         //создание зараженнных шаров
-        if(i<infected){
+        if(i < infected){
             InfectedBall* infBall = new InfectedBall();
-            ball[i] = infBall;
+            ballVector.push_back(infBall);
         }
         //создание здоровых шаров
         else{
             HealthyBall* infBall = new HealthyBall();
-            ball[i] = infBall;
+            ballVector.push_back(infBall);
         }
-        connect(ball[i]->GetTimer(),SIGNAL(timeout()),this,SLOT(InfectedToRecovered()));
+        connect(ballVector[i]->GetTimer(),SIGNAL(timeout()),this,SLOT(InfectedToRecovered()));
         //задаем расположение шара
         do{
             isFree = 0;
-            ball[i]->setPos(qrand() % 440 - 170, qrand() % 440 - 200);
+            ballVector[i]->setPos(rand() % 440 - 170, rand() % 440 - 200);
             for(int j=0;j<i;j++){
                 //если на этом место занято, рандомим другое место
-                if(ball[i]->collidesWithItem(ball[j])){
+                if(ballVector[i]->collidesWithItem(ballVector[j])){
                     isFree = 1;
                     break;
                 }
             }
-        }while(isFree);
-        scene->addItem(ball[i]);
-        ball[i]->SetBallStartPos(ball[i]->pos());
-        ball[i]->SetLeng(1);
+        } while(isFree);
+        scene->addItem(ballVector[i]);
+        ballVector[i]->SetBallStartPos(ballVector[i]->pos());
+        ballVector[i]->SetLeng(1);
         //рандомим старотовый угол
-        ball[i]->SetCurAngle(qrand()%360);
+        ballVector[i]->SetCurAngle(rand()%360);
     }
-    QRectF r = scene->sceneRect();
     //задем границы карты
-    if(!lineLeft) lineLeft = scene->addLine(r.center().x() - 250, r.center().y() - 250, r.center().x() - 250, r.center().y() + 250);
-    if(!lineRight) lineRight = scene->addLine(r.center().x() + 250, r.center().y() - 250, r.center().x() + 250, r.center().y() + 250);
-    if(!lineTop) lineTop = scene->addLine(r.center().x() - 250, r.center().y() - 250, r.center().x() + 250, r.center().y() - 250);
-    if(!lineBottom) lineBottom = scene->addLine(r.center().x() - 250, r.center().y() + 250, r.center().x() + 250, r.center().y() + 250);
-    timer->start(15);
+    MapBorder();
+
+    timer->start(speedBall);
 }
 
-void MainWindow::Clear()
+void MainWindow::MapBorder()
 {
-    for(int i=0;i<N;i++){
-        delete ball[i];
+    QRectF sceneRect = scene->sceneRect();
+    if(!lineLeft) lineLeft = scene->addLine(sceneRect.center().x() - mapBorder, sceneRect.center().y() - mapBorder, sceneRect.center().x() - mapBorder, sceneRect.center().y() + mapBorder);
+    if(!lineRight) lineRight = scene->addLine(sceneRect.center().x() + mapBorder, sceneRect.center().y() - mapBorder, sceneRect.center().x() + mapBorder, sceneRect.center().y() + mapBorder);
+    if(!lineTop) lineTop = scene->addLine(sceneRect.center().x() - mapBorder, sceneRect.center().y() - mapBorder, sceneRect.center().x() + mapBorder, sceneRect.center().y() - mapBorder);
+    if(!lineBottom) lineBottom = scene->addLine(sceneRect.center().x() - mapBorder, sceneRect.center().y() + mapBorder, sceneRect.center().x() + mapBorder, sceneRect.center().y() + mapBorder);
+}
+
+void MainWindow::ClearMap()
+{
+    for(int i = 0; i < ballCount; i++){
+        BallItem* tmp = ballVector.front();
+        ballVector.pop_front();
+        delete tmp;
     }
     ui->lineEdit_Recovered->setText("0");
     ui->lineEdit_Dead->setText("0");
@@ -148,55 +146,67 @@ void MainWindow::Clear()
 
 void MainWindow::buttonClicked()
 {
-    init(ui->lineEdit->text().toUInt(),ui->lineEdit_2->text().toUInt(),ui->lineEdit_3->text().toUInt());
+    ClearMap();
+    Init();
+    CreateBalls();
+}
+
+void MainWindow::Init()
+{
+    ballCount = ui->lineEdit->text().toUInt();
+    infected = ui->lineEdit_2->text().toUInt();
+    procent = ui->lineEdit_3->text().toUInt();
+    int textHealth = ui->lineEdit->text().toInt() - ui->lineEdit_2->text().toInt();
+    ui->lineEdit_Healthy->setText(QString::number(textHealth));
+    ui->lineEdit_Infected->setText(ui->lineEdit_2->text());
+}
+
+void MainWindow::CollidedLine(BallItem* ball,int angle)
+{
+    ball->SetCurAngle(angle - ball->GetCurAngle());
+    ball->SetBallStartPos(ball->pos());
+    ball->SetLeng(1);
+}
+
+void MainWindow::isCollideLine(BallItem *ball, QGraphicsLineItem* line, int angle)
+{
+    if(ball->collidesWithItem(line))
+    {
+        CollidedLine(ball,angle);
+    }
 }
 
 void MainWindow::slot_timerOut()
 {
-     for(int i=0;i<N;i++){
+     for(int i = 0; i < ballCount; i++){
          QColor black;
          black.setRgb(0,0,0);
-         if(ball[i]->GetColor() != black){
-             ball[i]->setPos(getNextPoint(ball[i]->GetBallStartPos(), ball[i]->GetCurAngle(), ball[i]->GetLeng()));
-             ball[i]->SetLeng(ball[i]->GetLeng()+1);
+         if(ballVector[i]->GetColor() != black){
+             ballVector[i]->setPos(getNextPoint(ballVector[i]->GetBallStartPos(), ballVector[i]->GetCurAngle(), ballVector[i]->GetLeng()));
+             ballVector[i]->SetLeng(ballVector[i]->GetLeng()+1);
+
              //столкноввние с левой границей
-             if(ball[i]->collidesWithItem(lineLeft))
-             {
-                 ball[i]->SetCurAngle(180 - ball[i]->GetCurAngle());
-                 ball[i]->SetBallStartPos(ball[i]->pos());
-                 ball[i]->SetLeng(1);
-             }
+             isCollideLine(ballVector[i],lineLeft,180);
+
              //столкновыение с правой границей
-             else if(ball[i]->collidesWithItem(lineRight))
-             {
-                 ball[i]->SetCurAngle(540 - ball[i]->GetCurAngle());
-                 ball[i]->SetBallStartPos(ball[i]->pos());
-                 ball[i]->SetLeng(1);
-             }
+             isCollideLine(ballVector[i],lineRight,540);
+
              //столкновение с нижней границей
-             else if(ball[i]->collidesWithItem(lineTop))
-             {
-                 ball[i]->SetCurAngle(360 - ball[i]->GetCurAngle());
-                 ball[i]->SetBallStartPos(ball[i]->pos());
-                 ball[i]->SetLeng(1);
-             }
+             isCollideLine(ballVector[i],lineBottom,360);
+
              //столкновение с верхней границей
-             else if(ball[i]->collidesWithItem(lineBottom))
-             {
-                 ball[i]->SetCurAngle(360 - ball[i]->GetCurAngle());
-                 ball[i]->SetBallStartPos(ball[i]->pos());
-                 ball[i]->SetLeng(1);
-             }
-             for(int j=i+1;j<N;j++){
+             isCollideLine(ballVector[i],lineTop,360);
+
+             for(int j=i+1;j<ballCount;j++){
                  //столкновение шаров
-                 if(ball[i]->collidesWithItem(ball[j])){
-                     if(ball[j]->GetColor() != black){
+                 if(ballVector[i]->collidesWithItem(ballVector[j])){
+                     if(ballVector[j]->GetColor() != black){
                          QColor green;
                          QColor red;
                          green.setGreen(255);
                          red.setRed(255);
                          //выводим информацию пользователю о заражении
-                         if((ball[i]->GetColor() == green && ball[j]->GetColor() == red) ||(ball[j]->GetColor() == green && ball[i]->GetColor() == red)){
+                         if((ballVector[i]->GetColor() == green && ballVector[j]->GetColor() == red) ||(ballVector[j]->GetColor() == green && ballVector[i]->GetColor() == red)){
                              int textInf = ui->lineEdit_Infected->text().toInt();
                              int textHealthy = ui->lineEdit_Healthy->text().toInt();
                              textInf++;
@@ -204,28 +214,29 @@ void MainWindow::slot_timerOut()
                              ui->lineEdit_Healthy->setText(QString::number(textHealthy));
                              ui->lineEdit_Infected->setText(QString::number(textInf));
                          }
-                         qreal angle = ball[i]->GetCurAngle();
-                         ball[i]->SetCurAngle(ball[j]->GetCurAngle());
-                         ball[j]->SetCurAngle(angle);
-                         ball[i]->SetBallStartPos(ball[i]->pos());
-                         ball[j]->SetBallStartPos(ball[j]->pos());
-                         ball[i]->SetLeng(1);
-                         ball[j]->SetLeng(1);
+                         qreal angle = ballVector[i]->GetCurAngle();
+                         ballVector[i]->SetCurAngle(ballVector[j]->GetCurAngle());
+                         ballVector[j]->SetCurAngle(angle);
+                         ballVector[i]->SetBallStartPos(ballVector[i]->pos());
+                         ballVector[j]->SetBallStartPos(ballVector[j]->pos());
+                         ballVector[i]->SetLeng(1);
+                         ballVector[j]->SetLeng(1);
                          //удаляем со сцены
-                         scene->removeItem(ball[i]);
-                         scene->removeItem(ball[j]);
-                         ball[j] = ball[i]->Collision(ball[j]);
-                         ball[i] = ball[j]->Collision(ball[i]);
-                         ball[i]->setPos(ball[i]->GetBallStartPos());
-                         ball[j]->setPos(ball[j]->GetBallStartPos());
-                         connect(ball[j]->GetTimer(),SIGNAL(timeout()),this,SLOT(InfectedToRecovered()));
-                         connect(ball[i]->GetTimer(),SIGNAL(timeout()),this,SLOT(InfectedToRecovered()));
+                         scene->removeItem(ballVector[i]);
+                         scene->removeItem(ballVector[j]);
+                         ballVector[j] = ballVector[i]->Collision(ballVector[j]);
+                         ballVector[i] = ballVector[j]->Collision(ballVector[i]);
+                         ballVector[i]->setPos(ballVector[i]->GetBallStartPos());
+                         ballVector[j]->setPos(ballVector[j]->GetBallStartPos());
+                         connect(ballVector[j]->GetTimer(),SIGNAL(timeout()),this,SLOT(InfectedToRecovered()));
+                         connect(ballVector[i]->GetTimer(),SIGNAL(timeout()),this,SLOT(InfectedToRecovered()));
                          //добавляем в сцену
-                         scene->addItem(ball[i]);
-                         scene->addItem(ball[j]);
+                         scene->addItem(ballVector[i]);
+                         scene->addItem(ballVector[j]);
                     }
                  }
              }
          }
      }
 }
+

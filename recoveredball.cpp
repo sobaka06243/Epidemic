@@ -2,9 +2,9 @@
 
 RecoveredBall::RecoveredBall()
 {
-timer = new QTimer();
-isChange=0;
-color.setBlue(255);
+    timer = new QTimer();
+    isChange=0;
+    color.setBlue(255);
 }
 
 

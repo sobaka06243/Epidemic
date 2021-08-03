@@ -34,7 +34,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Количество шаров: </string>
+     <string>Количество людей: </string>
     </property>
    </widget>
    <widget class="QLineEdit" name="lineEdit">

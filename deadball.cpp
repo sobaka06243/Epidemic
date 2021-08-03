@@ -2,9 +2,9 @@
 
 DeadBall::DeadBall()
 {
-timer = new QTimer();
-isChange = 0;
-color.setRgb(0,0,0);
+    timer = new QTimer();
+    isChange = 0;
+    color.setRgb(0,0,0);
 }
 
 BallItem* DeadBall::Collision(BallItem *a)
